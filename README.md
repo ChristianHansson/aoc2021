@@ -1,1 +1,5 @@
-"# aoc2021" 
+# AOC 2021
+
+## participants
+- Christian
+- ?
