@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node index.js",
     "watch": "nodemon --watch index.js",
     "watch:dev": "NODE_ENV=dev npm run watch"
   },
