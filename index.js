@@ -14,7 +14,11 @@ class RandomBingoNumbers{
 		return n;
 	}
 }
+let board_name_incrementer = 0;
 class Board {
+	constructor(){
+		this.name = String(board_name_incrementer++).concat("_board");
+	}
 	lines = [];
 	formatted_lines = [];
 	line_length = null;
@@ -41,22 +45,49 @@ class Board {
 			o++;
 		}
 	}
-	have_i_won(n){
-		const y = this.board_index[n].y;
-		const x = this.board_index[n].x;
-		const check_numbers = this.formatted_lines[y];
-		for(const a of check_numbers){
-			if (this.board_index[a].checked === false){
+	check_row(arr){
+		let i = 0;
+		while(i < arr.length){
+			const num = arr[i++];
+			if (this.board_index[num].checked === false){
 				return false;
 			}
 		}
-		this.winner = true;
 		return true;
 	}
-	checkNumber(n){
+	check_column(index){
+		for(let i = 0; i < this.formatted_lines.length; i++){
+			// if (this.formatted_lines[index])
+			const num = this.formatted_lines[i][index];
+			if (this.board_index[num].checked === false){
+				return false;
+			}
+		}
+		return true;
+	}
+	have_i_won(n, on_turn){
+		const y = this.board_index[n].y;
+		const x = this.board_index[n].x;
+		const check_numbers = this.formatted_lines[y];
+		for(let i = 0; i < this.line_length + 1; i++){
+			if (this.check_row(this.formatted_lines[i])){
+				this.turn_won = on_turn;
+				this.winner = true;
+				break;
+			}
+			if (this.check_column(i)){
+				this.winner = true;
+				this.turn_won = on_turn;
+				break;
+			}
+		}
+		return this.winner;
+	}
+	checkNumber(n, turn){
+		if (this.winner === true){return false;}
 		if (n in this.board_index){
 			this.board_index[n].checked = true;
-			return this.have_i_won(n);
+			return this.have_i_won.apply(this, arguments);
 		}
 		return false;
 	}
@@ -75,6 +106,7 @@ class Board {
 class Boards{
 	boards = [];
 	tmp = null;
+	turn = 0;
 	constructor(){}
 	add_line(line){
 		this.tmp.add_row(line);
@@ -93,14 +125,30 @@ class Boards{
 			this.boards[i++].index();
 		}
 	}
-	check(n){
+	have_all_won(){
 		let i = 0;
 		while(i < this.boards.length){
-			if(this.boards[i++].checkNumber(n)){
-				return true;
+			const board = this.boards[i++];
+			if (board.winner === false){
+				return false;
 			}
 		}
-		return false;
+		return true;
+	}
+	check(n){
+		if (this.have_all_won()) return true;
+		let i = 0;
+		while(i < this.boards.length){
+			const board = this.boards[i++];
+			if(board.checkNumber(n, this.turn)){
+				// return true;
+				this.last_board_won = board;
+				//return false;
+			}
+		}
+		this.turn++;
+		return this.have_all_won()
+		// return false;
 	}
 	get_unmarked_numbers(){
 		let n = 0;
@@ -134,12 +182,21 @@ const BingoPlayer = function(draw_numbers = bingoNumbers.len){
 	let unmarked_numbers = 0;
 	for (let i = 0; i < draw_numbers; i++){
 		let n = bingoNumbers.draw();
-		let we_have_a_winner = board.check(n);
-		if (we_have_a_winner){
+		let have_all_boards_won = board.check(n);
+		// if (+n === 13){
+		// 	console.log(board, have_all_boards_won)
+		// }
+		if (have_all_boards_won){
 			winning_draw_number = n;
-			unmarked_numbers = board.get_unmarked_numbers();
+			unmarked_numbers = board.last_board_won.calc_unmarked();
 			break;
 		}
+		// let we_have_a_winner = board.check(n);
+		// if (we_have_a_winner){
+		// 	winning_draw_number = n;
+		// 	unmarked_numbers = board.get_unmarked_numbers();
+		// 	break;
+		// }
 	}
 	const bingo_score = unmarked_numbers * winning_draw_number;
 	console.log(`winning_draw_number: ${winning_draw_number}`);
@@ -149,6 +206,6 @@ const BingoPlayer = function(draw_numbers = bingoNumbers.len){
 
 BingoPlayer();
 
-// winning_draw_number: 41
-// unmarked_numbers: 871
-// bingo_score: 35711
+// winning_draw_number: 21
+// unmarked_numbers: 266
+// bingo_score: 5586 Correct
