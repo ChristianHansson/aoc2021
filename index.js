@@ -1,1 +1,1 @@
-const filehandler = require("./lib/file");
+const filecontent = require("./lib/file").load("data");
